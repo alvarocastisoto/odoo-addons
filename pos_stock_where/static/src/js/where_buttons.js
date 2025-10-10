@@ -18,15 +18,12 @@ patch(ProductInfoPopup.prototype, {
         const orm = useService("orm");
         const posSvc = useService("pos");
 
-        // === Etiquetas “bonitas” sin cambiar la lógica ===
-        // 1) Mapa por ruta completa (case-insensitive). Ajusta si tus complete_name difieren.
         const PATH_LABELS = new Map([
             ["wh-t1/stock", "Tienda 1"],
             ["wh-t2/up", "Tienda 2 arriba"],
             ["wh-t2/down", "Tienda 2 abajo"],
         ]);
 
-        // 2) Heurística por patrón WH-T{n}/Stock(/Sub)
         const prettyName = (r) => {
             const raw = String(r?.complete_name || "").trim();
             if (!raw) return `Ubicación ${r?.location_id ?? ""}`.trim();
@@ -34,7 +31,6 @@ patch(ProductInfoPopup.prototype, {
             const key = raw.toLowerCase();
             if (PATH_LABELS.has(key)) return PATH_LABELS.get(key);
 
-            // Patrón general: WH(-T?N)/Stock(/Sub)
             const m = raw.match(/^WH-?T?(\d+)\/Stock(?:\/(.+))?$/i);
             if (m) {
                 const tienda = m[1];
@@ -45,10 +41,8 @@ patch(ProductInfoPopup.prototype, {
                     if (sub === "abajo") return "Tienda 2 abajo";
                     return "Tienda 2";
                 }
-                // Otros WH-Tn → “Tienda n {sub}”
                 return `Tienda ${tienda}${sub ? " " + m[2] : ""}`;
             }
-            // Fallback: deja el nombre original
             return raw;
         };
 
@@ -101,7 +95,7 @@ patch(ProductInfoPopup.prototype, {
             container.innerHTML = "";
 
             const h = document.createElement("h4");
-            h.textContent = "Stock disponible"; // (corregido el texto)
+            h.textContent = "Stock disponible"; 
             container.appendChild(h);
 
             if (!rows.length) {
@@ -116,7 +110,7 @@ patch(ProductInfoPopup.prototype, {
             for (const r of rows) {
                 const li = document.createElement("li");
                 const qty = (r.qty || 0).toFixed(2);
-                li.textContent = `${prettyName(r)}: ${qty}`; // ← aquí usamos la etiqueta bonita
+                li.textContent = `${prettyName(r)}: ${qty}`;
                 ul.appendChild(li);
             }
             container.appendChild(ul);
