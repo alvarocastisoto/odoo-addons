@@ -1,0 +1,14 @@
+<odoo>
+  <record id="view_pos_config_form_restrict_stock_wh" model="ir.ui.view">
+    <field name="name">pos.config.form.restrict.stock.wh</field>
+    <field name="model">pos.config</field>
+    <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//sheet" position="inside">
+        <group string="Inventario (Restricciones)">
+          <field name="restrict_out_of_stock"/>
+        </group>
+      </xpath>
+    </field>
+  </record>
+</odoo>
