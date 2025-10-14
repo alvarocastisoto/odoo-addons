@@ -11,7 +11,6 @@ class PosOrder(models.Model):
         return config.picking_type_id.default_location_src_id or config.stock_location_id
 
     def _free_qty_in_tree(self, product_id, root_loc_id):
-        """free = quantity - reserved en root_loc y TODAS sus hijas."""
         rg = self.env["stock.quant"].read_group(
             domain=[("product_id", "=", product_id),
                     ("location_id", "child_of", root_loc_id)],
@@ -25,7 +24,6 @@ class PosOrder(models.Model):
         return qty - res
 
     def _extract_required_from_vals(self, vals):
-        """Suma cantidades >0 de las líneas en el formato O2M de create()."""
         req = {}
         for cmd in vals.get("lines") or []:
             if not isinstance(cmd, (list, tuple)) or len(cmd) < 3:
@@ -42,17 +40,20 @@ class PosOrder(models.Model):
     def _check_required_map(self, req_map, location, label):
         if not req_map:
             return
-        errors = []
+        missing_names = []
         for pid, need in req_map.items():
             have = self._free_qty_in_tree(pid, location.id)
             if have < need:
                 prod = self.env["product.product"].browse(pid)
-                errors.append(
-                    _("- %(p)s → necesitas %(need).2f, disponible en %(loc)s: %(have).2f",
-                      p=prod.display_name, need=need, loc=location.display_name, have=have)
-                )
-        if errors:
-            msg = _("Sin stock en la ubicación del POS (%s):\n%s") % (label, "\n".join(errors))
+                missing_names.append(prod.display_name)
+
+        if missing_names:
+            # Quita duplicados preservando orden
+            unique = list(dict.fromkeys(missing_names))
+            quoted = '", "'.join(unique)
+            msg = _('Sin stock de: "%(names)s". Comprueba si hay en otras ubicaciones.') % {
+                "names": quoted
+            }
             _logger.warning("POS restrict stock: %s", msg.replace("\n", " | "))
             raise UserError(msg)
 
