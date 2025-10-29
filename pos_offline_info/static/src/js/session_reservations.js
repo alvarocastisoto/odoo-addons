@@ -2,7 +2,6 @@
 import { PosStore } from "@point_of_sale/app/store/pos_store";
 import { Order, Orderline } from "@point_of_sale/app/store/models";
 
-// Recalcula el mapa { productId: qtyReservada } a partir de TODOS los pedidos en POS
 function recomputeReservations(pos) {
   const map = {};
   const orders = pos.get_order_list?.() || pos.get_orders?.() || [];
@@ -16,12 +15,10 @@ function recomputeReservations(pos) {
       map[pid] = (map[pid] || 0) + (Number(q) || 0);
     }
   }
-  pos.sessionReserved = map; // ← aquí queda el estado vivo
-  // Si existe trigger/eventbus no es crítico; lo dejamos por si el core lo expone
+  pos.sessionReserved = map;
   try { pos.trigger?.("pos_offline_reservations_changed"); } catch {}
 }
 
-// Hooks sobre eventos clave del ciclo de vida
 const _add = Order.prototype.add_product;
 Order.prototype.add_product = function (product, options) {
   const r = _add.apply(this, arguments);

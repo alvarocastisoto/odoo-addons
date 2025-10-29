@@ -13,13 +13,10 @@
     """,
     "assets": {
         "point_of_sale._assets_pos": [
-            # 1. Gestión de reservas de sesión (debe ir primero)
             "pos_offline_info/static/src/js/session_reservations.js",
-            # 2. Gestión de reservas de cola (offline) y refrescos
             "pos_offline_info/static/src/js/reservations_on_validate.js",
             "pos_offline_info/static/src/js/auto_flush_on_online.js",
             "pos_offline_info/static/src/js/post_sale_refresh.js",
-            # 3. Lógica principal de caché y parcheo
             "pos_offline_info/static/src/js/prefetch_service.js",
             "pos_offline_info/static/src/js/patch_getproductinfo.js",
             "pos_offline_info/static/src/js/product_info_patch.js",

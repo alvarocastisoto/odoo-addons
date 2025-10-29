@@ -26,13 +26,11 @@ function addReservationsForOrder(pos, order){
   lsSet(key, R);
 }
 
-// Parcheamos el finalize: si no hay conexión, añadimos reservas.
 const _finalize = PaymentScreen.prototype._finalizeValidation;
 patch(PaymentScreen.prototype, {
   async _finalizeValidation() {
     const res = await _finalize.apply(this, arguments);
     try {
-      // Solo si estamos real/offline (el core ya ha metido el pedido en la cola local)
       if (!navigator.onLine) {
         const pos = this.env.services.pos;
         const order = pos?.get_order?.();

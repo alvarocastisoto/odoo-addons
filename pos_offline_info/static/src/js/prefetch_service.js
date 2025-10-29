@@ -15,7 +15,6 @@ const lsSet = (k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{}
 async function prefetchAll(env, pos) {
   const key = storageKey(env, pos);
 
-  // Cogemos productos de la fuente que esté disponible
   const products =
     (pos.modelsByName?.["product.product"]?.records?.length
       ? pos.modelsByName["product.product"].records
@@ -31,7 +30,6 @@ async function prefetchAll(env, pos) {
     return;
   }
 
-  // 1) WHERE (tu módulo pos_stock_where)
   try {
     const whereMap = await env.services.orm.call(
       "product.product", "pos_where_bulk", [ids, pos.config.id], {}
@@ -48,7 +46,6 @@ async function prefetchAll(env, pos) {
     console.warn("[pos_offline_info] precache WHERE failed:", e);
   }
 
-  // 2) INFO en lotes (nuestro pos_product_info_bulk)
   const CHUNK = 100;
   for (let i = 0; i < ids.length; i += CHUNK) {
     const batch = ids.slice(i, i + CHUNK);
@@ -73,11 +70,9 @@ async function prefetchAll(env, pos) {
   console.log("[pos_offline_info] prefetch DONE");
 }
 
-// Service que se ejecuta cuando POS está listo
 registry.category("services").add("pos_offline_prefetch", {
   dependencies: ["pos", "orm", "user"],
   start(env) {
-    // `env.services.pos` es el PosStore. Esperamos a que esté listo.
     const pos = env.services.pos;
     if (!pos) return;
     pos.ready.then(() => prefetchAll(env, pos)).catch((e) => {

@@ -1,5 +1,3 @@
-# pos_offline_info/models/product.py
-# -*- coding: utf-8 -*-
 from odoo import api, models
 import logging
 _logger = logging.getLogger(__name__)

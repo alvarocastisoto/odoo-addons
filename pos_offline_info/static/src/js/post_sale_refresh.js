@@ -4,7 +4,6 @@ import { PaymentScreen } from "@point_of_sale/app/screens/payment_screen/payment
 
 console.log("[pos_offline_info] post_sale_refresh LOADED");
 
-// === Utils comunes ===
 const lsGet = (k)=>{ try{ return JSON.parse(localStorage.getItem(k)||"null"); }catch{return null;} };
 const lsSet = (k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} };
 const uniq  = (a)=>[...new Set(a)];
@@ -18,7 +17,6 @@ function storageKey(env, pos) {
 }
 
 function keyByLoc(rows=[]) {
-  // Normaliza filas por ubicación (ajusta campos si tus filas difieren)
   return Object.fromEntries(
     rows.map(r => {
       const locId = r.location_id || r.location?.id || 0;
@@ -30,7 +28,6 @@ function keyByLoc(rows=[]) {
 }
 
 function differs(a, b) {
-  // ¿cambió alguna ubicación relevante?
   const ak = Object.keys(a), bk = Object.keys(b);
   if (ak.length !== bk.length) return true;
   for (const k of ak) {
@@ -44,7 +41,6 @@ async function fetchWhere(env, pos, productIds) {
   const map = await env.services.orm.call(
     "product.product", "pos_where_bulk", [productIds, pos.config.id], {}
   );
-  // Asegura arrays
   for (const pid of productIds) {
     if (!Array.isArray(map?.[pid])) map[pid] = [];
   }
@@ -61,7 +57,6 @@ async function refreshProductsOnce(env, pos, productIds) {
   const key = storageKey(env, pos);
   let snap = lsGet(key) || { byProduct:{}, ts:0, version:1 };
 
-  // WHERE
   const whereMap = await fetchWhere(env, pos, productIds);
   for (const pid of productIds) {
     const prev = snap.byProduct[pid] || {};
@@ -71,7 +66,6 @@ async function refreshProductsOnce(env, pos, productIds) {
     };
   }
 
-  // INFO
   const infoMap = await fetchInfo(env, pos, productIds);
   for (const [pidStr, info] of Object.entries(infoMap || {})) {
     const pid = Number(pidStr);
@@ -81,14 +75,10 @@ async function refreshProductsOnce(env, pos, productIds) {
 
   snap.ts = Date.now();
   lsSet(key, snap);
-  // Mantén en memoria alineado
   pos.offlineInfo = snap;
 }
 
-/**
- * Reintenta hasta que cambie el WHERE vs el snapshot previo
- * Backoff: 0s, 1s, 3s, 7s, 15s (ajustable)
- */
+
 async function refreshUntilChanged(env, pos, productIds) {
   const key = storageKey(env, pos);
   const prevSnap = lsGet(key) || { byProduct:{}, ts:0, version:1 };
@@ -98,10 +88,8 @@ async function refreshUntilChanged(env, pos, productIds) {
     if (attempts[i]) await sleep(attempts[i]);
 
     try {
-      // Lee WHERE actual (sin escribir aún)
       const currentWhere = await fetchWhere(env, pos, productIds);
 
-      // Compara por PID
       let changed = false;
       for (const pid of productIds) {
         const prevRows = prevSnap.byProduct?.[pid]?.where || [];
@@ -112,13 +100,11 @@ async function refreshUntilChanged(env, pos, productIds) {
       }
 
       if (changed) {
-        // Si cambió, ya escribimos snapshot completo (WHERE + INFO) una vez
         await refreshProductsOnce(env, pos, productIds);
         console.log("[pos_offline_info] post-sale refresh OK on attempt", i+1);
         return true;
       }
 
-      // Si no cambió aún, en el último intento escribe igualmente (mejor “idéntico” que nada)
       if (i === attempts.length - 1) {
         await refreshProductsOnce(env, pos, productIds);
         console.warn("[pos_offline_info] post-sale refresh wrote identical snapshot (no change detected)");
@@ -132,7 +118,7 @@ async function refreshUntilChanged(env, pos, productIds) {
   return false;
 }
 
-// ============== HOOK ==============
+
 const _validate = PaymentScreen?.prototype?.validateOrder;
 
 if (_validate && !_validate.__pos_offline_postsale_patched__) {
@@ -145,10 +131,8 @@ if (_validate && !_validate.__pos_offline_postsale_patched__) {
         ?.filter(Boolean) || [];
       const uniquePids = uniq(pids);
 
-      // flujo original
       const res = await _validate.apply(this, arguments);
 
-      // tras validar (y volver a la pantalla de productos), intenta actualizar
       if (uniquePids.length) {
         if (navigator.onLine) {
           try { await refreshUntilChanged(this.env, pos, uniquePids); }

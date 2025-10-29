@@ -11,7 +11,6 @@ function storageKey(store){
 }
 const lsGet = (k)=>{ try{ return JSON.parse(localStorage.getItem(k)||"null"); }catch{return null;} };
 
-// ——— helpers de normalización y cálculo ———
 function harden(info){
   info = info || {};
   info.productInfo = info.productInfo || {};
@@ -66,7 +65,6 @@ function computeClientFields(pos, product, info) {
   return info;
 }
 
-// Heurística “seguro-online”: no solo navigator.onLine
 function safeOnline() {
   return navigator.onLine && !window.__pos_rpc_down__;
 }
@@ -81,7 +79,6 @@ patch(PosStore.prototype, {
     const mem = (this.offlineInfo?.byProduct?.[product.id]?.info) || null;
     const ls  = (lsGet(key)?.byProduct?.[product.id]?.info) || null;
 
-    // 1) Modo claramente offline o con RPC marcada como caída → usa caché y calcula
     if (!safeOnline()) {
       let info = harden(mem || ls || {
         productInfo: { all_prices:{}, pricelists:[], warehouses:[], suppliers:[], variants:[], optional_products:[] },
@@ -91,10 +88,8 @@ patch(PosStore.prototype, {
       return info;
     }
 
-    // 2) Intento online con fallback silencioso si falla
     try {
       const res = _getProductInfo ? await _getProductInfo.apply(this, arguments) : {};
-      // éxito → marcamos que la red va
       window.__pos_rpc_down__ = false;
 
       const snap = lsGet(key) || { byProduct:{}, ts:0, version:1 };
@@ -105,7 +100,6 @@ patch(PosStore.prototype, {
       this.offlineInfo = snap;
       return res;
     } catch (e) {
-      // fallo de red (o servidor) → marcar caída y devolver caché sin romper UX
       console.warn("[pos_offline_info] getProductInfo online failed; using cache", e);
       window.__pos_rpc_down__ = true;
 

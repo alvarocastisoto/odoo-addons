@@ -37,7 +37,6 @@ async function refreshWhereFor(env, pos, productIds){
   lsSet(keyRes, R);
 }
 
-// --- PING HTTP con backoff (sin JSON-RPC) ---
 async function httpPing(urls=["/web/webclient/version_info", "/web"], attempts=[0, 800, 1600, 3200, 6400]) {
   for (let i = 0; i < attempts.length; i++) {
     if (attempts[i]) await new Promise(r => setTimeout(r, attempts[i]));
@@ -54,7 +53,6 @@ async function httpPing(urls=["/web/webclient/version_info", "/web"], attempts=[
           return true;
         }
       } catch {
-        // sigue intentando con la siguiente URL / intento
       }
     }
     window.__pos_rpc_down__ = true;
@@ -63,7 +61,6 @@ async function httpPing(urls=["/web/webclient/version_info", "/web"], attempts=[
 }
 
 registry.category("services").add("pos_offline_autoflush", {
-  // No necesitamos "rpc" aquí
   dependencies: ["pos", "orm", "user"],
   start(env) {
     const pos = env.services.pos;
@@ -77,13 +74,11 @@ registry.category("services").add("pos_offline_autoflush", {
         const ok = await httpPing();
         if (!ok) return;
 
-        // Empuja pedidos en cola (si hay)
         try {
           const maybe = pos.push_orders?.();
           if (maybe?.then) await maybe;
         } catch {}
 
-        // Refresca WHERE de productos con reservas
         const base = keyBase(pos);
         const R = lsGet(base + "/reservations") || {};
         const ids = Object.keys(R).map(Number).filter(Boolean);

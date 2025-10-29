@@ -32,8 +32,8 @@ function sessionQtyForProduct(pos, productId) {
 
 function applySessionDeltas(pos, product, rows) {
   const stockLocId = pos.config?.stock_location_id?.[0] || null;
-  const openLines  = sessionQtyForProduct(pos, product.id);             // pedido actual / pestañas activas
-  const pendingR   = Number(reservationsFor(pos)[product.id] || 0);     // ventas validadas OFFLINE (cola)
+  const openLines  = sessionQtyForProduct(pos, product.id);
+  const pendingR   = Number(reservationsFor(pos)[product.id] || 0);     
   const reserved   = Number(openLines) + Number(pendingR);
 
   if (!reserved || !stockLocId) return rows;
@@ -54,7 +54,6 @@ function applySessionDeltas(pos, product, rows) {
   });
 }
 
-/* ============================================================= */
 
 patch(ProductInfoPopup.prototype, {
   setup() {
@@ -64,7 +63,6 @@ patch(ProductInfoPopup.prototype, {
 
     this.whereState = this.whereState || useState({ rows: [], productId: null });
 
-    // ------- cache locale -------
     const key = (() => {
       const user = this?.env?.services?.user;
       const db = user?.context?.db || "";
@@ -76,13 +74,10 @@ patch(ProductInfoPopup.prototype, {
     const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
     const readCached = (pid) => (lsGet(key)?.byProduct?.[pid]) || null;
 
-    // Heurística conectividad “fiable”
     const safeOnline = () => navigator.onLine && !window.__pos_rpc_down__;
 
-    // TTL para revalidación de “where” (ms)
     const TTL_MS = 30_000;
 
-    // Re-pinta desde caché + delta (no bloquea)
     const recomputeFromCache = (product) => {
       if (!product) return;
       const snap = readCached(product.id);
@@ -97,7 +92,6 @@ patch(ProductInfoPopup.prototype, {
       this.whereState.productId = product.id;
     };
 
-    // ¿Necesita refresh?
     const needsRefresh = (product) => {
       const s = lsGet(key);
       const lastTs = Number(s?.ts || 0);
@@ -106,11 +100,9 @@ patch(ProductInfoPopup.prototype, {
       return !has || stale;
     };
 
-    // Refresh en background (silencioso)
-// Refresh en background (silencioso)
+
     const refreshWhereSilently = async (product) => {
     try {
-        // ← usamos ORM: suficiente y evita rpc.rpc
         const rows = await this.env.services.orm.call(
         "product.product",
         "pos_where",
@@ -118,7 +110,6 @@ patch(ProductInfoPopup.prototype, {
         {}
         );
 
-        // Guardar en caché
         const cur = lsGet(key) || { byProduct: {}, ts: 0, version: 1 };
         const prev = cur.byProduct[product.id] || {};
         cur.byProduct[product.id] = { ...prev, where: Array.isArray(rows) ? rows : [] };
@@ -126,7 +117,6 @@ patch(ProductInfoPopup.prototype, {
         lsSet(key, cur);
         window.__pos_rpc_down__ = false;
 
-        // Re-pinta si seguimos sobre el mismo producto
         if (this.whereState.productId === product.id) {
         recomputeFromCache(product);
         }
@@ -136,26 +126,20 @@ patch(ProductInfoPopup.prototype, {
     }
     };
 
-    // Carga completa: cache-first y, si procede, refresh silencioso
     const load = async (product) => {
       if (!product) return;
 
-      // 1) Pintar YA desde caché
       recomputeFromCache(product);
 
-      // 2) Si hay conectividad “fiable” y está stale, refrescar en bg
       if (safeOnline() && needsRefresh(product)) {
-        // no esperamos: fire & forget
         refreshWhereSilently(product);
       }
     };
 
-    // ===== Ciclo de vida =====
     onMounted(async () => {
       if (this.props?.product) {
         await load(this.props.product);
       }
-      // Reaplique ligero del delta de sesión mientras el popup esté abierto
       this.__where_refresh_timer__ = setInterval(() => {
         if (this.props?.product) recomputeFromCache(this.props.product);
       }, 1000);

@@ -39,7 +39,6 @@ patch(ProductInfoPopup.prototype, {
     const loadWhere = async (product) => {
       if (!product) return;
 
-      // ONLINE ⇒ RPC y cachea
       if (navigator.onLine) {
         try {
           const rows = await orm.call(
