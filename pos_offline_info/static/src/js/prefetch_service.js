@@ -74,6 +74,9 @@ registry.category("services").add("pos_offline_prefetch", {
   dependencies: ["pos", "orm", "user"],
   start(env) {
     const pos = env.services.pos;
+    window.__POS_SVC__ = env.services.pos;
+    window.__POS_ENV__ = env;
+    pos.ready.then(() => console.log("[pos_offline_info] POS READY (expuesto como __POS_SVC__)"));
     if (!pos) return;
     pos.ready.then(() => prefetchAll(env, pos)).catch((e) => {
       console.warn("[pos_offline_info] prefetch service error:", e);

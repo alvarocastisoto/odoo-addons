@@ -36,6 +36,24 @@ patch(ProductInfoPopup.prototype, {
       lsSet(key, snap);
     };
 
+
+    this.prettyName = (r) => {
+        // Prioriza el path relativo al almacén (si viene), si no usa complete_name
+        const base = (r && (r.path || r.display_name || r.complete_name || "")) || "";
+        const parts = String(base).split("/").filter(Boolean);
+        return parts.length ? parts[parts.length - 1] : base || ("Ubicación " + (r.location_id || ""));
+        };
+
+        this.fmtQty = (q) => {
+        const n = Number(q);
+        // Usa formateador del POS si está disponible, si no, toFixed(2)
+        try {
+            const pos = this.env?.services?.pos;
+            return pos && pos.formatFloat ? pos.formatFloat(n) : (Number.isFinite(n) ? n.toFixed(2) : "0.00");
+        } catch {
+            return Number.isFinite(n) ? n.toFixed(2) : "0.00";
+        }
+        };
     const loadWhere = async (product) => {
       if (!product) return;
 

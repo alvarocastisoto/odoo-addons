@@ -1,0 +1,30 @@
+<odoo>
+    <!-- Añade una sección "Ubicaciones" al final del cuerpo del ProductInfoPopup -->
+    <template id="pos_offline_info_product_info_where" inherit_id="point_of_sale.ProductInfoPopup">
+        <!-- Intentamos anclar al body del popup; si tu tema cambia, ajusta el selector -->
+        <xpath
+            expr="//div[contains(@class, 'popup')]//div[contains(@class,'body') or contains(@class,'content')]"
+            position="append">
+            <div class="o_pos_where_section" style="margin-top: 8px;">
+                <div class="o_pos_where_title" style="font-weight:600; margin-bottom:4px;">
+                    Ubicaciones</div>
+
+                <t t-if="whereState.rows.length">
+                    <t t-foreach="whereState.rows" t-as="row">
+                        <div class="o_pos_where_row"
+                            style="display:flex; justify-content:space-between; padding:2px 0;">
+                            <span class="o_pos_where_name">
+                                <t t-esc="prettyName(row)" />
+                            </span>
+                            <span class="o_pos_where_qty">on hand: <t t-esc="fmtQty(row.qty)" /></span>
+                        </div>
+                    </t>
+                </t>
+                <t t-else="">
+                    <div class="o_pos_where_empty" style="opacity:.7;">Sin stock en ubicaciones
+                        internas.</div>
+                </t>
+            </div>
+        </xpath>
+    </template>
+</odoo>
