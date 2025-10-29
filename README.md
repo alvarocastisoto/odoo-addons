@@ -1,186 +1,129 @@
-Odoo Addons (POS · Stock · Offline) — by Álvaro Castiñeira
+# Odoo Addons (POS · Stock · Offline) — by Álvaro Castiñeira
 
-Colección de módulos para Odoo 17 Community centrados en TPV (Point of Sale), multi-almacén, y mejoras de operación offline. El objetivo es cubrir necesidades reales de tienda: elegir sub-ubicación de salida, limitar desde qué almacenes se puede vender, y exponer de forma clara “dónde hay stock” directamente en el POS.
+Colección de módulos para **Odoo 17 Community** orientados a **TPV**, **multi-almacén** y **operación offline**. Permiten:
+- Elegir **sub-ubicación de salida** por línea en el cobro.
+- Consultar **dónde hay stock** desde el POS (incluye **caché offline**).
+- **Restringir** desde qué almacenes puede vender cada **TPV**.
 
-⚙️ Probado con Odoo 17 CE (Docker/Doodba). Licencia LGPL-3.
+> Probado con **Odoo 17 CE** (Docker/Doodba). Licencia **LGPL-3**.
 
-Índice
+---
 
-Módulos incluidos
+## Índice
 
-pos_stock_where
+- [Módulos incluidos](#módulos-incluidos)
+  - [pos_offline_info](#pos_offline_info)
+  - [pos_stock_where](#pos_stock_where)
+  - [pos_restrict_stock_wh](#pos_restrict_stock_wh)
+- [Instalación](#instalación)
+- [Uso rápido](#uso-rápido)
+- [Compatibilidad y dependencias](#compatibilidad-y-dependencias)
+- [Notas de desarrollo](#notas-de-desarrollo)
+- [Limitaciones conocidas](#limitaciones-conocidas)
+- [Roadmap](#roadmap)
+- [Licencia](#licencia)
 
-pos_restrict_stock_wh
+---
 
-Instalación
+## Módulos incluidos
 
-Uso rápido
+### `pos_offline_info`
+**Qué aporta**
+- **Selector de sub-ubicación** al validar el pago (por línea). Guarda `pos_src_location_id` y fuerza el `stock.move.location_id` de salida.
+- **Caché offline** de info “dónde hay stock” para usar el popup de producto sin conexión.
+- Re-asignación de movimientos para que el picking **salga desde la sub-ubicación** elegida, aunque el POS esté configurado en el padre (`/Stock`).
 
-Compatibilidad y dependencias
+**Dónde está**
+- Carpeta: `pos_offline_info/`
 
-Consejos de desarrollo (Docker/Doodba)
+**Cómo se usa**
+- En el cobro, si el producto existe en varias sub-ubicaciones, aparece un popup para **elegir** (p. ej. `arriba`/`abajo`).  
+- El texto del selector es **en castellano** y puedes elegir mostrar u ocultar la cantidad disponible.
 
-Roadmap
+---
 
-Licencia
+### `pos_stock_where`
+**Qué aporta**
+- Método backend `pos_where`/`pos_where_bulk` que devuelve, por producto, **todas las sub-ubicaciones internas** con su **disponible**.
+- UI en el **Product Info Popup** para ver **dónde hay stock** (incluye integración con caché offline del módulo anterior).
 
-Soporte
+**Dónde está**
+- Carpeta: `pos_stock_where/`
 
-Módulos incluidos
-pos_stock_where
+**Cómo se usa**
+- En la ficha del producto en el POS, abre el popup de info: verás las ubicaciones donde hay stock y su cantidad.  
+- Funciona **online** y se apoya en la **caché** si no hay conexión.
 
-Qué hace
+---
 
-Añade un endpoint seguro (server) que consolida “dónde hay stock” por producto usando stock.quant (agrupado por location_id, solo ubicaciones internas y compañía del TPV).
+### `pos_restrict_stock_wh`
+**Qué aporta**
+- **Restringe** qué **almacenes/ubicaciones** puede usar cada **TPV** (útil para multitienda).
+- Evita vender accidentalmente desde ubicaciones no autorizadas.
 
-En el front del POS, muestra esta información en el Product Info y la caché offline en localStorage, para poder consultarla aunque se caiga la conexión.
+**Dónde está**
+- Carpeta: `pos_restrict_stock_wh/`
 
-Normaliza la ruta de ubicación para mostrar solo el último segmento en el selector (p. ej., arriba / abajo), evitando rutas largas.
+**Cómo se usa**
+- Configura en el **TPV** las ubicaciones permitidas. El POS solo opera sobre ellas.
 
-Cómo funciona (resumen técnico)
+---
 
-Backend: read_group sobre stock.quant → compone filas por producto con:
+## Instalación
 
-location_id, complete_name, qty (on-hand), warehouse_name, path relativo al lot_stock_id del almacén.
+1. Copia las carpetas de módulos dentro de tu path de addons (o añade este repo a tu ruta de addons).
+2. Actualiza la lista de módulos y **instala**:
+   - `pos_stock_where`
+   - `pos_restrict_stock_wh`
+   - `pos_offline_info`
+3. **Recompila assets** del POS (actualiza `version` en `__manifest__.py` si usas Doodba para forzar rebuild) y **reinicia** el contenedor/servicio.
 
-Ordena priorizando la ubicación base del POS (si aplica) y nombre.
+> Orden recomendado: primero `pos_stock_where`, luego `pos_restrict_stock_wh`, y por último `pos_offline_info`.
 
-Frontend:
+---
 
-Capa de caché en localStorage por base de datos/compañía/config del POS.
+## Uso rápido
 
-El selector de ubicación en el flujo de pago muestra opciones únicas por location_id y solo el “leaf” (último segmento).
+- **Elegir sub-ubicación al pagar**: al validar, por cada línea se muestra un selector si hay varias sub-ubicaciones con stock. La elección se **inyecta** en el payload que sube a servidor y se enlaza al `stock.move` resultante.
+- **Ver “dónde hay stock”**: desde el popup de info del producto. Si no hay red, se usa **caché local**.
+- **Restringir almacenes del TPV**: define en la configuración del TPV qué ubicaciones están permitidas.
 
-Literal en castellano; la cantidad es opcional y puede ocultarse.
+---
 
-Cuándo usarlo
+## Compatibilidad y dependencias
 
-Si quieres visualizar rápidamente en qué sub-ubicación hay existencias por producto desde el TPV (con o sin conexión).
+- Odoo **17.0 Community**.
+- Depende de módulos base de **POS** y **Stock**.  
+- `pos_offline_info` integra con `pos_stock_where` para la caché offline del “dónde hay stock”.
+- Multicompañía soportada: el cómputo de stock se filtra por `company_id`.
 
-pos_restrict_stock_wh
+---
 
-Qué hace
+## Notas de desarrollo
 
-Restringe desde qué almacenes/ubicaciones se puede vender en el POS.
+- Los JS del POS parchean de forma **no intrusiva** (OWL/patch) servicios como `PaymentScreen.validateOrder` y el guardado `_save_to_server`, inyectando `pos_src_location_id` por línea.
+- En backend:
+  - Se añade `pos_order_line_id` al `stock.move`.
+  - Se fuerza `move.location_id` según la **sub-ubicación** elegida y se re-asignan reservas si hace falta.
+- Para forzar rebuild de assets, sube `version` en el manifest (p. ej. `17.0.1.0.X`).
 
-Evita ventas desde almacenes no permitidos (útil con múltiples tiendas o backstores).
+---
 
-Cómo funciona (resumen técnico)
+## Limitaciones conocidas
 
-Añade lógica de validación en POS para forzar que las órdenes y reservas/movimientos salgan solo de ubicaciones permitidas por configuración.
+- Si varias líneas del mismo producto comparten picking, el enlace `move ↔ pos.order.line` se resuelve por **vínculo directo** y, si no existe, por **fallback** por producto (primera coincidencia).
+- Si el TPV apunta a una **ubicación padre** (vista), el módulo reubica los `moves` a la **sub-ubicación** elegida; asegúrate de que las sub-ubicaciones son de **uso interno**.
 
-Cuándo usarlo
+---
 
-Si tienes varios almacenes/sub-ubicaciones y necesitas garantizar que cada TPV solo descuente stock de las zonas que le correspondan.
+## Roadmap
 
-Instalación
+- Preferencias de **UI** para mostrar/ocultar cantidades en el selector.
+- Mejoras en el **match** de líneas a movimientos cuando hay productos repetidos con lotes/series.
+- Soporte de **trazas** (lotes/serial) en el flujo de sub-ubicación.
 
-Para Odoo 17 CE. Si usas Doodba + Docker, revisa también la sección de desarrollo.
+---
 
-Clona o copia este repo en un directorio que esté en tu addons_path.
+## Licencia
 
-Actualiza la lista de Apps en Odoo.
-
-Instala los módulos deseados desde Apps:
-
-pos_stock_where
-
-pos_restrict_stock_wh
-
-Reinicia el servicio de Odoo tras instalar (recomendado si hay JS/CSS).
-
-Cuando modifiques JS del POS, incrementa version en __manifest__.py para romper caché de assets y recarga el POS.
-
-Comandos útiles (Docker estándar)
-# actualizar apps + instalar módulo
-odoo -d <DB> -u pos_stock_where,pos_restrict_stock_wh --stop-after-init
-
-
-Con Doodba:
-
-docker compose up -d
-docker compose logs -f odoo
-
-Uso rápido
-Flujo recomendado (multi-ubicación bajo un almacén “padre”)
-
-Configura tu almacén principal con sub-ubicaciones internas (p. ej., mar/Stock/arriba, mar/Stock/abajo).
-
-En Ajustes del TPV, apunta el POS a la ubicación padre del almacén (p. ej., mar/Stock).
-
-El módulo no “rompe” el picking: seguirá saliendo del padre, pero te permitirá elegir la sub-ubicación de origen por línea.
-
-En el POS, al pagar:
-
-Para cada línea sin origen fijado, se abrirá un selector de ubicación con las sub-ubicaciones donde hay stock (o la del POS por defecto si no hay datos).
-
-Se muestra solo el último segmento (ej.: arriba / abajo), en castellano.
-
-Al validar el ticket:
-
-La línea viaja con pos_src_location_id.
-
-Los stock.move se crean/vinculan a la pos.order.line y se reubican a la sub-ubicación elegida, re-reservando si fuese necesario.
-
-Conexión caída: el POS sigue mostrando los datos cacheados (“dónde hay”) y deja elegir sub-ubicación igualmente; al volver online, se sincroniza.
-
-Compatibilidad y dependencias
-
-Versión: Odoo 17.0 (Community).
-
-Depende: point_of_sale, stock.
-Algunos flujos combinan bien con pos_restrict_stock_wh.
-
-Multi-compañía: el cálculo de “dónde hay” filtra por company_id del TPV.
-
-Ubicaciones: solo internas; se ignoran vistas/otras usage.
-
-Consejos de desarrollo (Docker/Doodba)
-
-Romper caché de assets: sube version en __manifest__.py al tocar JS/OWL.
-
-Logs útiles:
-
-Busca trazas propias en el contenedor:
-
-docker compose logs -f odoo | grep "POS SRC"
-
-
-Verificación Rápida en odoo shell:
-
-Inspeccionar último picking y sus moves:
-
-o = env["pos.order"].search([], order="id desc", limit=1)
-p = o.picking_ids[:1]
-for m in p.move_ids_without_package:
-    print("MOVE", m.id,
-          "src:", m.location_id.complete_name,
-          "line_id:", (m.pos_order_line_id and m.pos_order_line_id.id) or False,
-          "line_src:", (m.pos_order_line_id and m.pos_order_line_id.pos_src_location_id and m.pos_order_line_id.pos_src_location_id.complete_name) or False)
-
-
-Estructura de caché (front):
-
-localStorage clave: POS_OFFLINE_INFO/v17/<db>/<company>/<config>
-
-Guarda por product_id → where[] (filas normalizadas por ubicación).
-
-Roadmap
-
-Modo “solo online/offline forzado” con indicadores en UI.
-
-Métricas de tiempo de refresco y recacheo granular por evento.
-
-Extender soporte a Odoo 18/19 (cuando encaje).
-
-Tests unitarios para fallback de enlaces pos_order_line_id ↔ stock.move.
-
-Licencia
-
-LGPL-3. Revisa el encabezado de cada módulo para detalles.
-
-Soporte
-
-Issues y mejoras: abre un Issue en GitHub con pasos y logs.
-
-Pull Requests bienvenidos 😊
+Este repositorio se publica bajo **LGPL-3**.
