@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+  <t t-name="pos_stock_where.WhereSection" owl="1">
+    <section class="o_pos_product_info_where mt-2" id="pos_where_container">
+      <h4>Stock disponible</h4>
+      <t t-if="rows and rows.length">
+        <ul class="o_pos_where_list list-unstyled mb-0">
+          <t t-foreach="rows" t-as="r" t-key="r.location_id">
+            <li class="o_pos_where_item">
+              <span class="o_pos_where_name">
+                <t t-out="prettyName and prettyName(r) or (r.display_name or r.complete_name or ('Ubicación ' + (r.location_id or '')))"/>
+              </span>
+              <span class="o_pos_where_qty">
+                <t t-out="fmtQty and fmtQty(r.qty) or (r.qty or 0).toFixed(2)"/>
+              </span>
+            </li>
+          </t>
+        </ul>
+      </t>
+      <t t-else=""><em>¡Sin stock en ningún almacén!</em></t>
+    </section>
+  </t>
+
+  <t t-inherit="point_of_sale.ProductInfoPopup" t-inherit-mode="extension" owl="1">
+    <xpath expr="//main[contains(@class,'body') or contains(@class,'modal-body')]" position="inside">
+      <t t-call="pos_stock_where.WhereSection">
+                <!-- En Owl, 'this' es el componente actual -->
+        <t t-set="rows" t-value="(this and this.whereState and this.whereState.rows) or []"/>
+        <t t-set="prettyName" t-value="this and this.prettyName"/>
+        <t t-set="fmtQty" t-value="this and this.fmtQty"/>
+      </t>
+    </xpath>
+  </t>
+
+</templates>
