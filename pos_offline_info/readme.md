@@ -69,3 +69,38 @@ for m in p.move_ids_without_package:
           "line_id:", (m.pos_order_line_id and m.pos_order_line_id.id) or False,
           "line_src:", (m.pos_order_line_id and m.pos_order_line_id.pos_src_location_id and
                         m.pos_order_line_id.pos_src_location_id.complete_name) or False)
+
+
+
+Logs útiles:
+
+POS SRC UI→LINE
+POS SRC MOVE VALS@line
+POS SRC FIX AFTER CREATE
+POS SRC ENFORCED
+
+Limitaciones
+
+Offline sin cache previo: se usará la ubicación por defecto del TPV.
+
+Muchas líneas iguales: si faltase enlace directo, hay fallback por producto dentro del pedido (y se persiste).
+
+Rendimiento: el cache front ayuda a evitar llamadas repetidas.
+
+Estructura
+pos_offline_info/
+├── __init__.py
+├── __manifest__.py
+├── models/
+│   ├── pos_order.py
+│   ├── pos_order_line.py
+│   ├── stock_move.py
+│   └── stock_picking.py
+├── static/
+│   ├── src/js/choose_location_on_validate.js
+│   └── src/xml/product_info_where.xml
+└── views/pos_order_line_views.xml
+
+Licencia
+
+LGPL-3
