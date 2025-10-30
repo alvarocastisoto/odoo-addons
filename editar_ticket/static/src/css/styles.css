@@ -1,0 +1,49 @@
+.pos-tax-table {
+    border-collapse: collapse;
+    width: 100%;
+
+}
+
+.pos-tax-table th,
+.pos-tax-table td {
+    padding: 5px 5px;
+    text-align: left;
+}
+
+.pos-tax-table thead th {
+    border-bottom: 1px solid #000;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.pos-tax-table tbody td {
+    border-bottom: 1px dotted #aaa;
+    font-size: 12px;
+}
+
+.pos-tax-table tfoot td {
+    border-top: 2px solid #000;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.pos-receipt .pos-receipt-taxes:has(.pos-tax-table) {
+    grid-template-columns: auto;
+    margin-top: 20px;
+}
+
+.pos-receipt li.orderline {
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+.pos-receipt .pos-receipt-amount{
+    padding-left: 0px;
+}
+
+div#posqrcode {
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
