@@ -4,8 +4,3 @@ __pycache__/
 node_modules/
 dist/
 *.map
-.DS_Store
-*.log
-*.pot
-*.zip
-*.tar.gz

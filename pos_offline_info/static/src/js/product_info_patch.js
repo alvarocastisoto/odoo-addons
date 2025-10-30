@@ -33,7 +33,7 @@ function sessionQtyForProduct(pos, productId) {
 function applySessionDeltas(pos, product, rows) {
   const stockLocId = pos.config?.stock_location_id?.[0] || null;
   const openLines  = sessionQtyForProduct(pos, product.id);
-  const pendingR   = Number(reservationsFor(pos)[product.id] || 0);     
+  const pendingR   = Number(reservationsFor(pos)[product.id] || 0);
   const reserved   = Number(openLines) + Number(pendingR);
 
   if (!reserved || !stockLocId) return rows;

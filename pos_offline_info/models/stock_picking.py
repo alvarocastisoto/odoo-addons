@@ -28,7 +28,6 @@ class StockPicking(models.Model):
                 continue
 
             for m in p.move_ids_without_package:
-                # 1) Empareja un canditado de línea por producto (si hay varias, coge la primera)
                 cands = lines_by_product.get(m.product_id.id) or []
                 line = cands and cands[0] or False
 
