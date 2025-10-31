@@ -14,8 +14,8 @@ function storageKey(env, posSvc) {
   const cfg = posSvc?.config?.id || "0";
   return `POS_OFFLINE_INFO/v17/${db}/${cmp}/${cfg}`;
 }
-function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)||"null"); }catch{return null;} }
-function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
+// function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)||"null"); }catch{return null;} }
+// function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
 
 patch(ProductInfoPopup.prototype, {
   setup() {
@@ -27,14 +27,14 @@ patch(ProductInfoPopup.prototype, {
     const posSvc = useService("pos");
     const key = storageKey(this.env, posSvc);
 
-    const readCachedWhere = (pid) => (lsGet(key)?.byProduct?.[pid]?.where) || null;
-    const writeCachedWhere = (pid, rows) => {
-      const snap = lsGet(key) || { byProduct: {}, ts: 0, version: 1 };
-      const prev = snap.byProduct[pid] || {};
-      snap.byProduct[pid] = { ...prev, where: Array.isArray(rows) ? rows : [] };
-      snap.ts = Date.now();
-      lsSet(key, snap);
-    };
+    // const readCachedWhere = (pid) => (lsGet(key)?.byProduct?.[pid]?.where) || null;
+    // const writeCachedWhere = (pid, rows) => {
+    //   const snap = lsGet(key) || { byProduct: {}, ts: 0, version: 1 };
+    //   const prev = snap.byProduct[pid] || {};
+    //   snap.byProduct[pid] = { ...prev, where: Array.isArray(rows) ? rows : [] };
+    //   snap.ts = Date.now();
+    //   lsSet(key, snap);
+    // };
 
 
     this.prettyName = (r) => {
@@ -75,10 +75,10 @@ patch(ProductInfoPopup.prototype, {
         }
       }
 
-      const cached = readCachedWhere(product.id);
-      this.whereState.rows = Array.isArray(cached) ? cached : [];
-      this.whereState.productId = product.id;
-      console.log("[pos_stock_where] where OFFLINE cache:", product.id, this.whereState.rows.length);
+      // const cached = readCachedWhere(product.id);
+      // this.whereState.rows = Array.isArray(cached) ? cached : [];
+      // this.whereState.productId = product.id;
+      // console.log("[pos_stock_where] where OFFLINE cache:", product.id, this.whereState.rows.length);
     };
 
     onMounted(async () => {
