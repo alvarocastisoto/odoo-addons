@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="pos_offline_info_templates" xml:space="preserve">
+  <t t-extend="point_of_sale.ProductInfoPopup">
+    <t t-jquery="div.popup .body, div.popup .content" t-operation="append">
+      <div class="o_pos_where_section" t-att-data-rev="whereState.rev" style="margin-top:8px;">
+        <div class="o_pos_where_title" style="font-weight:600;margin-bottom:4px;">Ubicaciones</div>
+
+        <t t-if="whereState.rows and whereState.rows.length">
+          <t t-foreach="whereState.rows" t-as="row" t-key="row.location_id or (row.location and row.location.id) or row.id">
+            <div class="o_pos_where_row" style="display:flex;justify-content:space-between;padding:2px 0;">
+              <span class="o_pos_where_name"><t t-esc="prettyName(row)"/></span>
+              <span class="o_pos_where_qty">
+                disponible:
+                <t t-esc="fmtQty((row.qty if row.qty is not None else (row.available_quantity if row.available_quantity is not None else (row.on_hand if row.on_hand is not None else 0))))"/>
+              </span>
+            </div>
+          </t>
+        </t>
+        <t t-else="">
+          <div class="o_pos_where_empty" style="opacity:.7;">Sin stock en ubicaciones internas.</div>
+        </t>
+      </div>
+    </t>
+  </t>
+</templates>

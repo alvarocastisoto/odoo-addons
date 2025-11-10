@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="pos_offline_info_templates" xml:space="preserve">
+  <t t-extend="point_of_sale.ProductInfoPopup">
+    <t t-jquery="div.popup .body, div.popup .content, main.body, main.modal-body" t-operation="append">
+      <section class="o_pos_where_section mt-2" t-att-data-rev="whereState.rev">
+        <h4 style="margin:0 0 6px;">Stock por almacén</h4>
+        <t t-if="whereState.groups and whereState.groups.length">
+          <ul class="list-unstyled mb-0">
+            <t t-foreach="whereState.groups" t-as="g" t-key="g.name">
+              <li class="mb-1">
+                <div class="d-flex justify-content-between fw-semibold">
+                  <span><t t-esc="g.name"/></span>
+                  <span><t t-esc="prettyQty(g.total)"/></span>
+                </div>
+                <ul class="list-unstyled ms-3 mb-0">
+                  <t t-foreach="g.children" t-as="c" t-key="c.name">
+                    <li class="d-flex justify-content-between">
+                      <span>— <t t-esc="c.name"/></span>
+                      <span><t t-esc="prettyQty(c.qty)"/></span>
+                    </li>
+                  </t>
+                </ul>
+              </li>
+            </t>
+          </ul>
+        </t>
+        <t t-else=""><em style="opacity:.7;">Sin stock en almacenes internos.</em></t>
+      </section>
+    </t>
+  </t>
+</templates>

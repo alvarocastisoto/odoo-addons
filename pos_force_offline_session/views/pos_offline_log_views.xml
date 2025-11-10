@@ -1,0 +1,42 @@
+<odoo>
+    <data>
+        <record id="pos_offline_log_view_tree" model="ir.ui.view">
+            <field name="name">pos.offline.log.view.tree</field>
+            <field name="model">pos.offline.log</field>
+            <field name="arch" type="xml">
+                <tree string="Logs de Cierre de TPV" delete="true">
+                    <field name="timestamp"/>
+                    <field name="session_id"/>
+                    <field name="user_id"/>
+                    <field name="event_type"/>
+                    <field name="details"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="pos_offline_log_action" model="ir.actions.act_window">
+            <field name="name">Logs de Cierre de TPV Offline</field>
+            <field name="res_model">pos.offline.log</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Aquí aparecerán todos los logs de eventos de cierre de sesión registrados en modo offline.
+                </p>
+            </field>
+        </record>
+
+        <menuitem 
+            id="pos_offline_log_menu_root" 
+            name="Logs POS Offline" 
+            parent="point_of_sale.menu_point_of_sale" 
+            sequence="100"/>
+            
+        <menuitem 
+            id="pos_offline_log_menu_action" 
+            name="Logs de Sesión Offline" 
+            parent="pos_offline_log_menu_root" 
+            action="pos_offline_log_action" 
+            sequence="10"/>
+
+    </data>
+</odoo>

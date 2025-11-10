@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="pos_offline_info_inventory" xml:space="preserve">
+    <!-- Inyecta nuestro árbol justo después del H4 "Inventario" -->
+  <t t-extend="point_of_sale.ProductInfoPopup">
+    <t t-jquery="h4:contains('Inventario')" t-operation="after">
+      <section class="o_pos_warehouse_tree mt-2" t-att-data-rev="whereState.rev">
+        <t t-if="whereState.groups and whereState.groups.length">
+          <ul class="list-unstyled mb-0">
+            <t t-foreach="whereState.groups" t-as="g" t-key="g.name">
+              <li class="mb-1">
+                <div class="d-flex justify-content-between fw-semibold">
+                  <span><t t-esc="g.name"/></span>
+                  <span><t t-esc="prettyQty(g.total)"/></span>
+                </div>
+                <ul class="list-unstyled ms-3 mb-0">
+                  <t t-foreach="g.children" t-as="c" t-key="c.name">
+                    <li class="d-flex justify-content-between">
+                      <span>— <t t-esc="c.name"/></span>
+                      <span><t t-esc="prettyQty(c.qty)"/></span>
+                    </li>
+                  </t>
+                </ul>
+              </li>
+            </t>
+          </ul>
+        </t>
+        <t t-else=""><em style="opacity:.7;">Sin stock en almacenes internos.</em></t>
+      </section>
+    </t>
+
+        <!-- Borra el bloque que añade pos_stock_where (sin CSS) -->
+    <t t-jquery="section#pos_where_container, .o_pos_product_info_where" t-operation="replace"/>
+  </t>
+</templates>
