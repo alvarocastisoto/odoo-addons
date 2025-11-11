@@ -1,7 +1,7 @@
 {
     "name": "POS Restrict Stock per Warehouse",
     "summary": "Bloquea añadir líneas en POS si no hay stock en el árbol del TPV.",
-    "version": "17.0.1.0.37",
+    "version": "17.0.1.0.65",
     "license": "LGPL-3",
     "author": "Alvaro Casti Soto",
     "website": "https://github.com/alvarocastisoto/odoo-addons",

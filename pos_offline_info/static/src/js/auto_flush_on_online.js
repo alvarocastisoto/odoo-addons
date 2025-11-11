@@ -19,7 +19,7 @@ function mergeReservationsMaps(pos) {
   const legacyKey  = base + "/reservations";
   const persistKey = base + "/reservations_persisted";
 
-  const L = lsGet(legacyKey)  || {}; 
+  const L = lsGet(legacyKey)  || {}; // { pid: { lid: qty } }
   const P = lsGet(persistKey) || {};
 
   const out = {};
@@ -37,7 +37,7 @@ function mergeReservationsMaps(pos) {
       dst[lid] = (Number(dst[lid]) || 0) + Number(q || 0);
     }
   }
-  return out;
+  return out; // { pid: { lid: qty } }
 }
 
 function deleteReservationsFor(pos, productIds) {
@@ -64,6 +64,7 @@ function deleteReservationsFor(pos, productIds) {
   }
 }
 
+/* ========= refresco WHERE ========= */
 async function refreshWhereFor(env, pos, productIds) {
   if (!productIds?.length) return;
   const ctx = buildCtx(pos);
@@ -102,6 +103,7 @@ async function httpPing(env, waits = [0, 800, 1600, 3200, 6400]) {
       }
     } catch {}
 
+    // 2) ping de versión correcto (POST JSON), preferentemente vía rpc
     try {
       const rpc = env?.services?.rpc;
       if (rpc) {

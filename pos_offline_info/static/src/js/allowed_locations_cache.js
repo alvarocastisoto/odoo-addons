@@ -31,6 +31,7 @@ async function computeAllowed(env){
   const rpc = env.services.rpc;
   const pos = env.services.pos;
 
+  // 1) pos.config → picking_type_id
   const cfg = await rpc("/web/dataset/call_kw/pos.config/read", {
     model: "pos.config", method: "read",
     args: [[pos.config.id], ["picking_type_id"]],

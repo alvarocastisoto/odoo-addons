@@ -1,7 +1,7 @@
 # __manifest__.py
 {
     "name": "POS Offline Product Info",
-    "version": "17.0.1.0.154",  # bump para recompilar assets
+    "version": "17.0.1.0.119",  # bump para recompilar assets
     "depends": ["point_of_sale", "stock", "pos_stock_where", "pos_restrict_stock_wh"],
     "author": "Alvaro Casti Soto",
     "license": "LGPL-3",
