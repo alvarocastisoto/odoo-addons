@@ -9,7 +9,7 @@ import * as OFFDB from "@pos_offline_info/js/cache_indexeddb";
 
 /* ===== opciones ===== */
 const SHOW_LAST_UNIT_TOAST = true;
-const DEBUG = true;
+const DEBUG = false;
 const FAIL_CLOSED = true;
 const LOW_STOCK_THRESHOLD = 10;
 const LOW_STOCK_COOLDOWN_MIN = 0;
@@ -377,7 +377,7 @@ function maybeLowStockToast(env, product, remainingExact){
 
   if (should){
     env.services.notification?.add?.(
-      _t("Stock bajo: quedan %s de %s", fmt(remainingExact), leaf(product.display_name || product.name))
+      _t("Stock bajo: quedan %s unidades de %s", fmt(remainingExact), leaf(product.display_name || product.name))
     );
     lsSet(k, { ts: now, rem: remainingExact, v: 5 });
   }
@@ -471,8 +471,8 @@ async function offerAltSourceAndMode(env, product, qty){
     const freeEff = rowOnHand(r);
     if (freeEff > 0) {
       const isLocal = !allowedSet.size || allowedSet.has(lid);
-      const tag = isLocal ? "" : " [OTRA TIENDA]";
-      const label = `${locLabelFromRow(r, lid)} — ${_t("disp")}: ${fmt(freeEff)}${tag}`;
+    //   const tag = isLocal ? "" : " [OTRA TIENDA]";
+      const label = `${locLabelFromRow(r, lid)} — ${_t("Disponible")}: ${fmt(freeEff)} ${_t("unidades")}`;
       items.push({ id: lid, label, item: { id: lid, name: locLabelFromRow(r, lid) } });
     }
   }
@@ -505,10 +505,10 @@ async function offerAltSourceAndMode(env, product, qty){
 async function askShipFromOtherWarehouse(env, product, chk){
   const title = _t("Sin stock en el árbol del TPV");
   const body  = _t(
-    "No hay stock de «%s».\nQuedan %s (permitido: %s − reservado en sesión: %s).\n\n¿Quieres vender enviando desde otra ubicación?",
+    "No hay stock de «%s».\n\n\n¿Quieres vender enviando desde otra ubicación?",
     leaf(product.display_name || product.name),
-    fmt(chk.remaining),
-    fmt(chk.allowedOnHand),
+    // fmt(chk.remaining),
+    // fmt(chk.allowedOnHand),
     fmt(chk.reserved)
   );
   const res = await env.services.popup.add(ConfirmPopup, {
